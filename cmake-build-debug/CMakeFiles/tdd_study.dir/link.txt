@@ -1,0 +1,1 @@
+/opt/rh/devtoolset-8/root/usr/bin/g++   -g    CMakeFiles/tdd_study.dir/SoundexTest.cpp.o CMakeFiles/tdd_study.dir/main.cpp.o  -o tdd_study -rdynamic -lgtest -lgmock -lpthread 
