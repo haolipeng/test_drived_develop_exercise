@@ -7,12 +7,14 @@
 //去除了测试中重复的Soundex类实例
 class SoundexEncoding : public testing::Test{
 public:
+    SoundexEncoding() = default;
+    ~SoundexEncoding() = default;
+public:
     Soundex soundex;
 };
-
-
 //为了使用自定义的fixture的成员，要使用TEST_F
-/*只有一个字母*/
+
+/*字母编码后不足4时，需补零*/
 TEST_F(SoundexEncoding, RetainSoleLetterOfOneLetterWord)
 {
     ASSERT_THAT(soundex.encode("A"), testing::Eq("A000"));
@@ -20,7 +22,7 @@ TEST_F(SoundexEncoding, RetainSoleLetterOfOneLetterWord)
 }
 
 /*测试字符转换表*/
-TEST_F(SoundexEncoding, ReplaceConsonantWithAppropriateDigit)
+TEST_F(SoundexEncoding, ReplaceTwoConsonantWithAppropriateDigit)
 {
     /*
      * {'b',"1"},{'f',"1"},{'p',"1"},{'v',"1"},
@@ -36,6 +38,15 @@ TEST_F(SoundexEncoding, ReplaceConsonantWithAppropriateDigit)
     ASSERT_THAT(soundex.encode("Ax"), testing::Eq("A200"));
 }
 
+/*测试字符转换表*/
+TEST_F(SoundexEncoding, ReplaceThreeConsonantWithAppropriateDigit)
+{
+    ASSERT_THAT(soundex.encode("Abg"), testing::Eq("A120"));
+    ASSERT_THAT(soundex.encode("Acr"), testing::Eq("A260"));
+    ASSERT_THAT(soundex.encode("Aal"), testing::Eq("A400"));
+    ASSERT_THAT(soundex.encode("AiU"), testing::Eq("A000"));
+}
+
 /*测试忽略非字符*/
 TEST_F(SoundexEncoding, IgnoresNonAlphabetics)
 {
@@ -49,11 +60,17 @@ TEST_F(SoundexEncoding, ReplaceMultipleConsonantWithDigits)
     ASSERT_THAT(soundex.encode("acdl"),testing::Eq("A234"));
 }
 
-/*测试字符串编码后长度为4*/
+/*测试字符串编码后长度是否为4*/
 TEST_F(SoundexEncoding, LimitsLengthToFourCharacters)
 {
     ASSERT_THAT(soundex.encode("Dcdlb").length(), testing::Eq(4));
     ASSERT_THAT(soundex.encode("123").length(), testing::Eq(4));
+}
+
+/*测试字符串大于4的情况*/
+TEST_F(SoundexEncoding, LengthLargeThanFourCharacters)
+{
+    ASSERT_THAT(soundex.encode("lxicdr"), testing::Eq("L223"));
 }
 
 /*测试元音对soundex的影响*/
@@ -68,6 +85,10 @@ TEST_F(SoundexEncoding, CombineDuplicateEncodings)
     ASSERT_THAT(soundex.encodedDigit('c'), testing::Eq(soundex.encodedDigit('g')));
     ASSERT_THAT(soundex.encodedDigit('d'), testing::Eq(soundex.encodedDigit('t')));
 
+    //编码转换时，是忽略大小写的
+    ASSERT_THAT(soundex.encodedDigit('B'), testing::Eq(soundex.encodedDigit('f')));
+
+    //相邻字符的编码一致，则用一个数字表示
     ASSERT_THAT(soundex.encode("abfcgdt"),testing::Eq("A123"));
 }
 
